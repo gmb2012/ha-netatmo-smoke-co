@@ -1,0 +1,21 @@
+{
+  "domain": "netatmo_melder",
+  "name": "Netatmo Smoke & CO Alarms",
+  "after_dependencies": [
+    "cloud"
+  ],
+  "codeowners": [
+    "@gmb2012"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "application_credentials",
+    "webhook"
+  ],
+  "documentation": "https://github.com/gmb2012/ha-netatmo-smoke-co",
+  "integration_type": "hub",
+  "iot_class": "cloud_push",
+  "issue_tracker": "https://github.com/gmb2012/ha-netatmo-smoke-co/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

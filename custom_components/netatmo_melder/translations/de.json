@@ -1,0 +1,63 @@
+{
+  "application_credentials": {
+    "description": "Client-ID und Client-Secret der eigenen Netatmo-App von [dev.netatmo.com]({developer_url}) verwenden. Als Redirect-URI der App `{redirect_url}` eintragen. Das Client-Secret prüft auch die Webhook-Signatur."
+  },
+  "config": {
+    "step": {
+      "pick_implementation": {
+        "title": "Anmeldemethode wählen"
+      },
+      "reauth_confirm": {
+        "title": "Netatmo erneut anmelden",
+        "description": "Die Netatmo-Anmeldung der Rauch- und CO-Melder ist abgelaufen. Bitte erneut anmelden."
+      }
+    },
+    "abort": {
+      "already_configured": "Dieses Netatmo-Konto ist bereits eingerichtet.",
+      "authorize_url_timeout": "Zeitüberschreitung beim Erstellen der Autorisierungs-URL.",
+      "cannot_connect": "Netatmo-Cloud nicht erreichbar.",
+      "invalid_auth": "Netatmo hat die Anmeldung abgelehnt.",
+      "missing_configuration": "Die Integration ist nicht konfiguriert. Zuerst Anmeldedaten der Anwendung hinzufügen.",
+      "missing_credentials": "Zuerst Client-ID und Secret der Netatmo-App als Anwendungs-Anmeldedaten hinzufügen.",
+      "no_devices": "In diesem Konto wurde kein Netatmo-Rauchmelder (NSD) oder CO-Melder (NCO) gefunden.",
+      "no_url_available": "Keine URL verfügbar. Siehe {docs_url}.",
+      "oauth_error": "Ungültige Token-Daten erhalten.",
+      "oauth_failed": "Fehler beim Abrufen des Zugriffstokens.",
+      "oauth_implementation_unavailable": "Die Anwendungs-Anmeldedaten sind nicht verfügbar.",
+      "oauth_timeout": "Zeitüberschreitung beim Abrufen des OAuth-Tokens.",
+      "oauth_unauthorized": "OAuth-Autorisierungsfehler beim Abrufen des Zugriffstokens.",
+      "reauth_successful": "Erneute Anmeldung erfolgreich.",
+      "user_rejected_authorize": "Kontoverknüpfung abgelehnt: {error}",
+      "wrong_account": "Angemeldet mit einem anderen Netatmo-Konto als dem eingerichteten."
+    },
+    "create_entry": {
+      "default": "Erfolgreich bei Netatmo angemeldet."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "detection_chamber": {
+        "name": "Messkammer"
+      }
+    },
+    "button": {
+      "acknowledge_alarm": {
+        "name": "Alarm quittieren"
+      }
+    },
+    "sensor": {
+      "last_event": {
+        "name": "Letztes Ereignis"
+      },
+      "last_seen": {
+        "name": "Zuletzt gesehen"
+      },
+      "last_webhook": {
+        "name": "Webhook zuletzt empfangen"
+      },
+      "wifi_strength": {
+        "name": "WLAN-Stärke"
+      }
+    }
+  }
+}

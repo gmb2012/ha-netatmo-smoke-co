@@ -1,0 +1,53 @@
+{
+  "body": {
+    "home": {
+      "id": "000000000000000000000001",
+      "events": [
+        {
+          "id": "6ace56db8c26b00f820f1693",
+          "type": "smoke",
+          "time": 1791907547,
+          "module_id": "70:ee:50:00:00:03",
+          "message": "Smarter Rauchmelder EG: Rauch abgezogen",
+          "sub_type": 0
+        },
+        {
+          "id": "6ace559e8c26b00f820f1678",
+          "type": "smoke",
+          "time": 1791907229,
+          "module_id": "70:ee:50:00:00:03",
+          "message": "Smarter Rauchmelder EG: Rauch erkannt",
+          "sub_type": 1,
+          "highlight": true
+        },
+        {
+          "id": "6ace559e8c26b00f820f1677",
+          "type": "hush",
+          "time": 1791907229,
+          "module_id": "70:ee:50:00:00:03",
+          "message": "Smarter Rauchmelder EG: stummgeschaltet für 15 min",
+          "sub_type": 1
+        },
+        {
+          "id": "6acaaff0e8e9312e290d5278",
+          "type": "wifi_status",
+          "time": 1791668208,
+          "module_id": "70:ee:50:00:00:01",
+          "message": "Smarter Rauchmelder Keller:WLAN-Verbindung erfolgreich hergestellt",
+          "sub_type": 1
+        },
+        {
+          "id": "6abee1f4e341f5e1630ecb44",
+          "type": "wifi_status",
+          "time": 1790894548,
+          "module_id": "70:ee:50:00:00:02",
+          "message": "Smarter Rauchmelder OG:WLAN-Verbindung erfolgreich hergestellt",
+          "sub_type": 1
+        }
+      ]
+    }
+  },
+  "status": "ok",
+  "time_exec": 0.023548126220703125,
+  "time_server": 1791910147
+}

@@ -1,0 +1,103 @@
+{
+  "body": {
+    "homes": [
+      {
+        "id": "000000000000000000000001",
+        "name": "Testhaus",
+        "altitude": 0,
+        "country": "CH",
+        "timezone": "Europe/Zurich",
+        "rooms": [
+          {
+            "id": "3789132162",
+            "name": "Büro 1",
+            "type": "livingroom"
+          },
+          {
+            "id": "2975911786",
+            "name": "Schlafzimmer",
+            "type": "livingroom"
+          },
+          {
+            "id": "1051911481",
+            "name": "Wohnzimmer",
+            "type": "livingroom",
+            "module_ids": [
+              "70:ee:50:00:00:04"
+            ]
+          },
+          {
+            "id": "1478908944",
+            "name": "Büro 2",
+            "type": "livingroom"
+          },
+          {
+            "id": "3806570567",
+            "name": "Draußen",
+            "type": "outdoor"
+          },
+          {
+            "id": "1687287350",
+            "name": "Andere",
+            "type": "custom",
+            "module_ids": [
+              "70:ee:50:00:00:01",
+              "70:ee:50:00:00:02"
+            ]
+          },
+          {
+            "id": "3178962627",
+            "name": "Küche",
+            "type": "kitchen",
+            "module_ids": [
+              "70:ee:50:00:00:03"
+            ]
+          }
+        ],
+        "modules": [
+          {
+            "id": "70:ee:50:00:00:01",
+            "type": "NSD",
+            "name": "Smarter Rauchmelder Keller",
+            "setup_date": 1759567705,
+            "room_id": "1687287350"
+          },
+          {
+            "id": "70:ee:50:00:00:02",
+            "type": "NSD",
+            "name": "Smarter Rauchmelder OG",
+            "setup_date": 1759570194,
+            "room_id": "1687287350"
+          },
+          {
+            "id": "70:ee:50:00:00:03",
+            "type": "NSD",
+            "name": "Smarter Rauchmelder EG",
+            "setup_date": 1759575559,
+            "room_id": "3178962627"
+          },
+          {
+            "id": "70:ee:50:00:00:04",
+            "type": "NCO",
+            "name": "Smarter Kohlenmonoxidmelder",
+            "setup_date": 1759574969,
+            "room_id": "1051911481"
+          }
+        ]
+      }
+    ],
+    "user": {
+      "email": "user@example.com",
+      "language": "de",
+      "locale": "de-DE",
+      "feel_like_algorithm": 0,
+      "unit_pressure": 0,
+      "unit_system": 0,
+      "unit_wind": 0,
+      "id": "000000000000000000000002"
+    }
+  },
+  "status": "ok",
+  "time_exec": 0.0560760498046875,
+  "time_server": 1791910141
+}

@@ -1,0 +1,39 @@
+{
+  "status": "ok",
+  "time_server": 1791910147,
+  "body": {
+    "home": {
+      "id": "000000000000000000000001",
+      "modules": [
+        {
+          "id": "70:ee:50:00:00:01",
+          "type": "NSD",
+          "firmware_revision": 2005,
+          "last_seen": 1791668207,
+          "wifi_strength": 47
+        },
+        {
+          "id": "70:ee:50:00:00:02",
+          "type": "NSD",
+          "firmware_revision": 2005,
+          "last_seen": 1790894548,
+          "wifi_strength": 49
+        },
+        {
+          "id": "70:ee:50:00:00:03",
+          "type": "NSD",
+          "firmware_revision": 2005,
+          "last_seen": 1791907545,
+          "wifi_strength": 62
+        },
+        {
+          "id": "70:ee:50:00:00:04",
+          "type": "NCO",
+          "firmware_revision": 1100,
+          "last_seen": 1790899383,
+          "wifi_strength": 68
+        }
+      ]
+    }
+  }
+}

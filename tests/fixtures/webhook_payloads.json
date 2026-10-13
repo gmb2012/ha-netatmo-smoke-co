@@ -1,0 +1,43 @@
+[
+  {
+    "user_id": "000000000000000000000002",
+    "user": {
+      "id": "000000000000000000000002",
+      "email": "user@example.com"
+    },
+    "push_type": "webhook_activation"
+  },
+  {
+    "user_id": "000000000000000000000002",
+    "event_type": "smoke",
+    "device_id": "70:ee:50:00:00:03",
+    "home_id": "000000000000000000000001",
+    "home_name": "Testhaus",
+    "camera_id": "70:ee:50:00:00:03",
+    "event_id": "6ace559e8c26b00f820f1678",
+    "sub_type": 1,
+    "push_type": "NSD-smoke"
+  },
+  {
+    "user_id": "000000000000000000000002",
+    "event_type": "hush",
+    "device_id": "70:ee:50:00:00:03",
+    "home_id": "000000000000000000000001",
+    "home_name": "Testhaus",
+    "camera_id": "70:ee:50:00:00:03",
+    "event_id": "6ace559e8c26b00f820f1677",
+    "sub_type": 1,
+    "push_type": "NSD-hush"
+  },
+  {
+    "user_id": "000000000000000000000002",
+    "event_type": "smoke",
+    "device_id": "70:ee:50:00:00:03",
+    "home_id": "000000000000000000000001",
+    "home_name": "Testhaus",
+    "camera_id": "70:ee:50:00:00:03",
+    "event_id": "6ace56db8c26b00f820f1693",
+    "sub_type": 0,
+    "push_type": "NSD-smoke"
+  }
+]
