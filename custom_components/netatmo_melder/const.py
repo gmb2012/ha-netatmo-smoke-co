@@ -23,6 +23,9 @@ SCAN_INTERVAL: Final = timedelta(minutes=5)
 # Backfill (first refresh after setup/restart) must not push alarms older than this (K5b).
 # In live operation every newly seen alarm is pushed, however late.
 ALARM_MAX_AGE: Final = timedelta(minutes=10)
+# Netatmo does not always send "smoke cleared" (15.10.2026: smoke 1, then nothing). A smoke alarm
+# without a new smoke event for this long is reset; CO alarms are not (they need co_detected 0).
+ALARM_RESET_AFTER: Final = timedelta(minutes=30)
 # last_seen only changes on events (days to weeks, Phase 0), so "offline" needs a long threshold.
 OFFLINE_AFTER: Final = timedelta(days=45)
 

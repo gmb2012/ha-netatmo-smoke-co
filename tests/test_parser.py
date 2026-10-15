@@ -17,6 +17,7 @@ from custom_components.netatmo_melder.parser import (
     acknowledge,
     apply_event,
     apply_events,
+    expire_alarm,
     is_alarm,
     parse_event,
     parse_webhook_payload,
@@ -212,6 +213,58 @@ def test_acknowledge_resets_alarm_only() -> None:
     assert acked.tampered is True
     # Immutable: the original is unchanged.
     assert state.alarm is True
+
+
+@pytest.mark.parametrize(
+    ("now", "expected_alarm"),
+    [
+        (1000 + 1799, True),
+        (1000 + 1800, False),
+    ],
+)
+def test_expire_alarm_after_timeout_without_new_alarm_event(now: int, expected_alarm: bool) -> None:
+    """15.10.2026: Netatmo sent no smoke 0, the alarm must not latch forever."""
+    state = DetectorState(
+        alarm=True,
+        alarm_since=1000,
+        alarm_event_id="a",
+        alarm_updated=1000,
+        hushed_until=1900,
+        tampered=True,
+    )
+    expired = expire_alarm(state, now, 1800)
+    assert expired.alarm is expected_alarm
+    if not expected_alarm:
+        assert expired == acknowledge(state)
+        assert expired.tampered is True
+        # alarm_updated stays, so older alarm events still cannot set the alarm again.
+        assert expired.alarm_updated == 1000
+    # Immutable: the original is unchanged.
+    assert state.alarm is True
+
+
+def test_expire_alarm_counts_from_the_newest_alarm_event() -> None:
+    state = DetectorState(alarm=True, alarm_since=1000, alarm_updated=2000)
+    assert expire_alarm(state, 1000 + 1800, 1800).alarm is True
+    assert expire_alarm(state, 2000 + 1800, 1800).alarm is False
+
+
+def test_expire_alarm_falls_back_to_alarm_since() -> None:
+    state = DetectorState(alarm=True, alarm_since=1000)
+    assert expire_alarm(state, 1000 + 1799, 1800).alarm is True
+    assert expire_alarm(state, 1000 + 1800, 1800).alarm is False
+
+
+@pytest.mark.parametrize(
+    "state",
+    [
+        DetectorState(),
+        DetectorState(alarm=False, alarm_updated=0, tampered=True),
+        DetectorState(alarm=True),  # no time known: keep it (manual acknowledge)
+    ],
+)
+def test_expire_alarm_leaves_other_states_unchanged(state: DetectorState) -> None:
+    assert expire_alarm(state, 10**10, 1800) is state
 
 
 @pytest.mark.parametrize(

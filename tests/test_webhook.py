@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 import json
 import logging
 from typing import Any
@@ -35,6 +35,7 @@ from .conftest import (
     HUSH_ID,
     SMOKE_OFF_ID,
     SMOKE_ON_ID,
+    SMOKE_ON_TIME,
     WEBHOOK_ID,
     events_without,
     load_fixture,
@@ -702,6 +703,7 @@ async def test_retry_stops_when_event_appears(
     hass_client_no_auth: ClientSessionGenerator,
     freezer: FrozenDateTimeFactory,
 ) -> None:
+    freezer.move_to(datetime.fromtimestamp(SMOKE_ON_TIME, UTC) + timedelta(minutes=4))
     mock_api["getevents"].return_value = events_without(SMOKE_ON_ID, HUSH_ID, SMOKE_OFF_ID)
     await setup_entry(hass, config_entry)
     calls = mock_api["getevents"].await_count

@@ -1,4 +1,4 @@
-"""Button per detector: acknowledge the alarm locally (K1: no time-based reset)."""
+"""Button per detector: acknowledge the alarm locally."""
 
 from __future__ import annotations
 

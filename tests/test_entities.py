@@ -33,7 +33,7 @@ from .conftest import (
 
 EG_PREFIX = "smarter_rauchmelder_eg"
 NCO_PREFIX = "smarter_kohlenmonoxidmelder"
-NOW = datetime.fromtimestamp(SMOKE_ON_TIME, UTC) + timedelta(hours=1)
+NOW = datetime.fromtimestamp(SMOKE_ON_TIME, UTC) + timedelta(minutes=5)
 
 pytestmark = pytest.mark.usefixtures("setup_credentials")
 

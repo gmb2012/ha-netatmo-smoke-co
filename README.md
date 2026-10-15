@@ -74,6 +74,10 @@ alarms and reports battery/chamber events.
   handler always answers 200 (Netatmo blocks a webhook for 24 h after 5 failures).
 - `smoke` with `sub_type` 1 = smoke detected, 0 = smoke cleared; `hush` mutes for 15 min without ending
   the alarm. `co_detected` is assumed to work the same way (**not tested** with real CO).
+- Netatmo does not always send *smoke cleared*. A smoke alarm without a new `smoke` event for
+  **30 minutes** is therefore reset (checked at each 5-min poll, so up to ~35 min; also after a restart).
+  Each new `smoke` event restarts the 30 minutes. CO alarms are **not** reset by time: they end with
+  `co_detected` 0 or the *Acknowledge alarm* button.
 - Each new alarm fires the event `netatmo_melder_alarm` (`module_id`, `name`, `type`, `event_id`,
   `time`, `active` = alarm still on when seen), however late it is seen. Only on the first refresh after setup or a restart, alarms older
   than 10 minutes set the state without the event.
@@ -116,4 +120,7 @@ Sirenen noch die Netatmo-App; der Webhook kommt **etwa 1,5–4 Minuten** nach de
   hinzufügen und bei Netatmo anmelden.
 - **Alarm:** Event `netatmo_melder_alarm` für jeden neuen Alarm (nur direkt nach einem Neustart werden Alarme > 10 min ohne Event übernommen); damit z. B. einen kritischen Push
   auslösen. CO-Alarm ist analog zum Rauch umgesetzt, aber nicht mit echtem CO getestet.
+- **Alarm-Ende:** Netatmo meldet „Rauch abgezogen“ nicht immer. Ein Rauchalarm ohne neues `smoke`-Ereignis
+  wird nach **30 Minuten** zurückgesetzt (Prüfung bei jeder Abfrage, also bis ~35 min). CO-Alarme nicht:
+  sie enden nur mit `co_detected` 0 oder per Button *Alarm quittieren*.
 - **Offline:** nach 45 Tagen ohne Kontakt; Batterie nur über `battery_status`-Ereignisse bekannt.

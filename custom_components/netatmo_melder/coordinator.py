@@ -20,8 +20,10 @@ from homeassistant.util import dt as dt_util
 from .api import NetatmoApiError, NetatmoAuthError, NetatmoMelderApi, find_detector_home
 from .const import (
     ALARM_MAX_AGE,
+    ALARM_RESET_AFTER,
     DOMAIN,
     EVENT_ALARM,
+    MODEL_SMOKE,
     SCAN_INTERVAL,
     STORAGE_VERSION,
     SUPPORTED_MODELS,
@@ -30,7 +32,7 @@ from .const import (
     WEBHOOK_REFRESH_MIN_INTERVAL,
     WEBHOOK_SAVE_DELAY,
 )
-from .parser import DetectorState, EventBatch, acknowledge, apply_events
+from .parser import DetectorState, EventBatch, acknowledge, apply_events, expire_alarm
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -121,8 +123,9 @@ class NetatmoMelderCoordinator(DataUpdateCoordinator[MelderData]):
         events = await self._call(self.api.getevents(self.home_id))
 
         batch = apply_events(self._states, events, self._processed, frozenset(self.modules))
-        changed = batch.processed != self._processed
-        self._states, self._processed = batch.states, batch.processed
+        states = self._expire_smoke_alarms(batch.states)
+        changed = batch.processed != self._processed or states != batch.states
+        self._states, self._processed = states, batch.processed
         if changed:
             await self._async_save()
         self._fire_alarms(batch)
@@ -132,6 +135,24 @@ class NetatmoMelderCoordinator(DataUpdateCoordinator[MelderData]):
             m["id"]: m for m in modules if isinstance(m, dict) and m.get("id") in self.modules
         }
         return self._snapshot(status)
+
+    def _expire_smoke_alarms(self, states: Mapping[str, DetectorState]) -> dict[str, DetectorState]:
+        now = int(dt_util.utcnow().timestamp())
+        after = int(ALARM_RESET_AFTER.total_seconds())
+        result = dict(states)
+        for module_id, state in states.items():
+            module = self.modules.get(module_id)
+            if module is None or module.type != MODEL_SMOKE:
+                continue
+            expired = expire_alarm(state, now, after)
+            if expired is not state:
+                _LOGGER.info(
+                    "Smoke alarm of %s reset: no new smoke event for %s",
+                    module.name,
+                    ALARM_RESET_AFTER,
+                )
+                result[module_id] = expired
+        return result
 
     def _fire_alarms(self, batch: EventBatch) -> None:
         now = dt_util.utcnow()
@@ -159,7 +180,7 @@ class NetatmoMelderCoordinator(DataUpdateCoordinator[MelderData]):
                     "event_id": event.id,
                     "time": when.isoformat(),
                     # False when the alarm already ended before it was seen (late push)
-                    "active": batch.states[event.module_id].alarm,
+                    "active": self._states[event.module_id].alarm,
                 },
             )
 

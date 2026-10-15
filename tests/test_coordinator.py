@@ -17,6 +17,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.netatmo_melder.api import NetatmoAuthError, NetatmoConnectionError
 from custom_components.netatmo_melder.const import (
+    ALARM_RESET_AFTER,
     DOMAIN,
     EVENT_ALARM,
     SCAN_INTERVAL,
@@ -26,6 +27,7 @@ from custom_components.netatmo_melder.const import (
 from .conftest import (
     EG,
     HUSH_ID,
+    NCO,
     SMOKE_OFF_ID,
     SMOKE_ON_ID,
     SMOKE_ON_TIME,
@@ -125,8 +127,8 @@ async def test_backfill_only_pushes_recent_alarms(
     events = async_capture_events(hass, EVENT_ALARM)
     await setup_entry(hass, config_entry)
 
-    # The state is set either way, only the push depends on the age.
-    assert hass.states.get(SMOKE).state == "on"
+    # The state is set either way (until the auto reset), only the push depends on the age.
+    assert hass.states.get(SMOKE).state == ("on" if age < ALARM_RESET_AFTER else "off")
     assert len(events) == (1 if fired else 0)
     if not fired:
         assert "state updated, no netatmo_melder_alarm event" in caplog.text
@@ -137,7 +139,9 @@ async def test_state_and_processed_ids_are_persisted(
     config_entry: MockConfigEntry,
     mock_api: dict[str, AsyncMock],
     hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
 ) -> None:
+    freezer.move_to(ALARM_AT + timedelta(minutes=5))
     mock_api["getevents"].return_value = events_without(SMOKE_OFF_ID)
     await setup_entry(hass, config_entry)
 
@@ -182,7 +186,9 @@ async def test_stored_state_is_restored(
     config_entry: MockConfigEntry,
     mock_api: dict[str, AsyncMock],
     hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
 ) -> None:
+    freezer.move_to(ALARM_AT + timedelta(minutes=5))
     hass_storage[_store_key(config_entry)] = {
         "version": 1,
         "minor_version": 1,
@@ -366,7 +372,7 @@ async def test_backfill_flag_survives_failed_first_refresh(
     freezer: FrozenDateTimeFactory,
 ) -> None:
     """A failed first refresh (setup retry) keeps the gate for the next first refresh."""
-    freezer.move_to(ALARM_AT + timedelta(hours=1))
+    freezer.move_to(ALARM_AT + timedelta(minutes=20))
     mock_api["getevents"].side_effect = NetatmoConnectionError("down")
     events = async_capture_events(hass, EVENT_ALARM)
     await setup_entry(hass, config_entry)
@@ -430,3 +436,173 @@ async def test_remove_entry_removes_store(
     await hass.config_entries.async_remove(config_entry.entry_id)
     await hass.async_block_till_done()
     assert _store_key(config_entry) not in hass_storage
+
+
+async def test_smoke_alarm_resets_without_clear_event(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """15.10.2026: Netatmo sent smoke 1 but never smoke 0; the sensor must not latch forever."""
+    assert timedelta(minutes=30) == ALARM_RESET_AFTER
+    freezer.move_to(ALARM_AT - timedelta(minutes=1))
+    mock_api["getevents"].return_value = events_without(SMOKE_ON_ID, HUSH_ID, SMOKE_OFF_ID)
+    events = async_capture_events(hass, EVENT_ALARM)
+    await setup_entry(hass, config_entry)
+
+    mock_api["getevents"].return_value = events_without(SMOKE_OFF_ID)
+    freezer.move_to(ALARM_AT + timedelta(minutes=29))
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(SMOKE).state == "on"
+
+    freezer.move_to(ALARM_AT + ALARM_RESET_AFTER)
+    await tick(hass, freezer)
+    assert hass.states.get(SMOKE).state == "off"
+    assert "no new smoke event for" in caplog.text
+    assert len(events) == 1  # the reset is not an alarm
+    assert hass_storage[_store_key(config_entry)]["data"]["states"][EG]["alarm"] is False
+
+    # The same events again do not bring the alarm back.
+    await tick(hass, freezer)
+    assert hass.states.get(SMOKE).state == "off"
+
+
+async def test_new_smoke_event_restarts_the_reset_timer(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    freezer.move_to(ALARM_AT)
+    mock_api["getevents"].return_value = events_without(SMOKE_OFF_ID)
+    events = async_capture_events(hass, EVENT_ALARM)
+    await setup_entry(hass, config_entry)
+    assert hass.states.get(SMOKE).state == "on"
+
+    again = ALARM_AT + timedelta(minutes=20)
+    mock_api["getevents"].return_value = [
+        *events_without(SMOKE_OFF_ID),
+        {
+            "id": "smoke-again",
+            "module_id": EG,
+            "type": "smoke",
+            "sub_type": 1,
+            "time": int(again.timestamp()),
+        },
+    ]
+    freezer.move_to(again + ALARM_RESET_AFTER - timedelta(seconds=1))
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(SMOKE).state == "on"
+    # Every accepted smoke 1 is pushed (unchanged behaviour), the alarm stays the first one.
+    assert len(events) == 2
+    assert hass.states.get(SMOKE).attributes["event_id"] == SMOKE_ON_ID
+
+    await tick(hass, freezer)
+    assert hass.states.get(SMOKE).state == "off"
+
+
+async def test_new_alarm_after_auto_reset_is_pushed(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    freezer.move_to(ALARM_AT)
+    mock_api["getevents"].return_value = events_without(SMOKE_OFF_ID)
+    events = async_capture_events(hass, EVENT_ALARM)
+    await setup_entry(hass, config_entry)
+    freezer.move_to(ALARM_AT + ALARM_RESET_AFTER)
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(SMOKE).state == "off"
+
+    later = ALARM_AT + timedelta(hours=1)
+    mock_api["getevents"].return_value = [
+        *events_without(SMOKE_OFF_ID),
+        {
+            "id": "smoke-later",
+            "module_id": EG,
+            "type": "smoke",
+            "sub_type": 1,
+            "time": int(later.timestamp()),
+        },
+    ]
+    freezer.move_to(later)
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(SMOKE).state == "on"
+    assert [event.data["event_id"] for event in events] == [SMOKE_ON_ID, "smoke-later"]
+    assert events[1].data["active"] is True
+
+
+async def test_stale_stored_alarm_is_reset_after_restart(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    hass_storage: dict[str, Any],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A latched alarm from before the update/restart is reset on the first refresh."""
+    hass_storage[_store_key(config_entry)] = {
+        "version": 1,
+        "minor_version": 1,
+        "key": _store_key(config_entry),
+        "data": {
+            "processed": {e["id"]: e["time"] for e in fixture_events()},
+            "states": {
+                EG: {"alarm": True, "alarm_since": SMOKE_ON_TIME, "alarm_updated": SMOKE_ON_TIME}
+            },
+            "last_webhook": None,
+        },
+    }
+    freezer.move_to(ALARM_AT + timedelta(hours=2))
+    await setup_entry(hass, config_entry)
+    assert hass.states.get(SMOKE).state == "off"
+    assert hass_storage[_store_key(config_entry)]["data"]["states"][EG]["alarm"] is False
+
+
+async def test_late_alarm_already_expired_is_pushed_inactive(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """A live alarm first seen after the reset window is pushed, but as no longer active."""
+    freezer.move_to(ALARM_AT - timedelta(minutes=1))
+    mock_api["getevents"].return_value = events_without(SMOKE_ON_ID, HUSH_ID, SMOKE_OFF_ID)
+    events = async_capture_events(hass, EVENT_ALARM)
+    await setup_entry(hass, config_entry)
+
+    freezer.move_to(ALARM_AT + ALARM_RESET_AFTER + timedelta(minutes=5))
+    mock_api["getevents"].return_value = events_without(SMOKE_OFF_ID)
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(SMOKE).state == "off"
+    assert [event.data["event_id"] for event in events] == [SMOKE_ON_ID]
+    assert events[0].data["active"] is False
+
+
+async def test_co_alarm_is_not_reset_by_time(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    mock_api: dict[str, AsyncMock],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """CO is odourless and its clear event is untested: only co_detected 0 or the button end it."""
+    freezer.move_to(ALARM_AT)
+    mock_api["getevents"].return_value = [
+        {
+            "id": "co1",
+            "module_id": NCO,
+            "type": "co_detected",
+            "sub_type": 1,
+            "time": SMOKE_ON_TIME,
+        },
+    ]
+    await setup_entry(hass, config_entry)
+    co = "binary_sensor.smarter_kohlenmonoxidmelder_carbon_monoxide"
+    assert hass.states.get(co).state == "on"
+
+    freezer.move_to(ALARM_AT + timedelta(hours=6))
+    await tick(hass, freezer, timedelta(0))
+    assert hass.states.get(co).state == "on"

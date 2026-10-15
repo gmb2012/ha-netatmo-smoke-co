@@ -171,6 +171,18 @@ def acknowledge(state: DetectorState) -> DetectorState:
     return replace(state, alarm=False, alarm_since=None, alarm_event_id=None, hushed_until=None)
 
 
+def expire_alarm(state: DetectorState, now: int, after: int) -> DetectorState:
+    """Reset an alarm without a new alarm event for `after` seconds (Netatmo can miss smoke 0).
+
+    Counts from the newest alarm event (alarm_updated), so a repeated smoke 1 re-arms it.
+    alarm_updated stays: older alarm events still cannot set the alarm again.
+    """
+    last = state.alarm_updated if state.alarm_updated is not None else state.alarm_since
+    if not state.alarm or last is None or now - last < after:
+        return state
+    return acknowledge(state)
+
+
 def apply_events(
     states: Mapping[str, DetectorState],
     raw_events: Iterable[Any],
