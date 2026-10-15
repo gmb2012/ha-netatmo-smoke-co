@@ -17,5 +17,5 @@
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/gmb2012/ha-netatmo-smoke-co/issues",
   "requirements": [],
-  "version": "0.1.0"
+  "version": "1.0.0"
 }

@@ -3,9 +3,9 @@
 [![Validate](https://github.com/gmb2012/ha-netatmo-smoke-co/actions/workflows/validate.yml/badge.svg)](https://github.com/gmb2012/ha-netatmo-smoke-co/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://hacs.xyz/docs/faq/custom_repositories/)
 
-> **Beta:** runs in the author's home since October 2026 (3 smoke alarms, 1 CO alarm). Smoke alarms are
-> tested with a real alarm end to end; the CO path is implemented the same way but **not tested with
-> real CO**. Feedback via issues is welcome.
+> Runs in the author's home since October 2026 (3 smoke alarms, 1 CO alarm). Smoke alarms are
+> tested with real alarms end to end (test spray, 15.10.2026); the CO path is implemented the same way but
+> **not tested with real CO**. Feedback via issues is welcome.
 
 Unofficial Home Assistant integration for the **Netatmo Smart Smoke Alarm (NSD)** and the
 **Netatmo Smart Carbon Monoxide Alarm (NCO)**. The built-in Netatmo integration does not expose these
@@ -14,7 +14,7 @@ through the Home Assistant Cloud (Nabu Casa) as wake-up call, and polling every 
 
 > **Disclaimer:** Not affiliated with Netatmo / Legrand. This is an **additional** notification
 > channel, not a replacement for the alarms' own sirens or the Netatmo app. Netatmo delivers the
-> webhook **about 3–4 minutes after** the alarm went off (measured), so do not rely on it for
+> webhook **about 1.5–4 minutes after** the alarm went off (measured), so do not rely on it for
 > real-time reaction inside the house.
 
 *Deutsch weiter unten.*
@@ -30,8 +30,7 @@ through the Home Assistant Cloud (Nabu Casa) as wake-up call, and polling every 
 ## Installation
 
 **HACS (recommended):** HACS → ⋮ → *Custom repositories* → `https://github.com/gmb2012/ha-netatmo-smoke-co`,
-category *Integration* → install *Netatmo Smoke & CO Alarms* (enable *Show beta versions* while it is in
-beta) → restart Home Assistant.
+category *Integration* → install *Netatmo Smoke & CO Alarms* → restart Home Assistant.
 
 **Manual:** copy `custom_components/netatmo_melder` to `/config/custom_components/` and restart.
 
@@ -106,12 +105,12 @@ ruff check .
 
 ## Deutsch
 
-**Beta.** Inoffizielle Integration für die Netatmo-Rauchmelder (NSD) und den CO-Melder (NCO) über die offizielle
+Inoffizielle Integration für die Netatmo-Rauchmelder (NSD) und den CO-Melder (NCO) über die offizielle
 Netatmo-API (OAuth, Webhook via Nabu Casa, Abfrage alle 5 min). **Zusatzkanal**, ersetzt weder die
-Sirenen noch die Netatmo-App; der Webhook kommt **etwa 3–4 Minuten** nach dem Alarm.
+Sirenen noch die Netatmo-App; der Webhook kommt **etwa 1,5–4 Minuten** nach dem Alarm.
 
 - **Installation:** HACS → *Benutzerdefinierte Repositories* → `https://github.com/gmb2012/ha-netatmo-smoke-co`
-  (Kategorie *Integration*, Beta-Versionen anzeigen) → installieren → HA neu starten.
+  (Kategorie *Integration*) → installieren → HA neu starten.
 - **Einrichtung:** eigene Netatmo-Dev-App (Redirect `https://my.home-assistant.io/redirect/oauth`) →
   in HA unter *Anmeldeinformationen für Anwendungen* Client-ID und -Secret eintragen → Integration
   hinzufügen und bei Netatmo anmelden.
